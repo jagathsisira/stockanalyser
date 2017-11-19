@@ -26,13 +26,13 @@ public class StockAnalyserMain {
 //        dataCleanser.cleanAndInsertInitialHistoryData();
 
 
-//        HotSpotInspector hotSpotInspector = new HotSpotInspector(MySqlConnector.getInstance());
-//        hotSpotInspector.getHotSpots();
+        HotSpotInspector hotSpotInspector = new HotSpotInspector(MySqlConnector.getInstance());
+        hotSpotInspector.getHotSpots();
 
 //        NewsClassifier newsClassifier = new NewsClassifier(MySqlConnector.getInstance());
 //        newsClassifier.classifyNews();
 
-        AnnouncementClassifier announcementClassifier = new AnnouncementClassifier(MySqlConnector.getInstance());
-        announcementClassifier.classifyNews();
+//        AnnouncementClassifier announcementClassifier = new AnnouncementClassifier(MySqlConnector.getInstance());
+//        announcementClassifier.classifyNews();
     }
 }

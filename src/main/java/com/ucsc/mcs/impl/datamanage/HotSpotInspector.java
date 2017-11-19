@@ -74,12 +74,14 @@ public class HotSpotInspector {
 
         System.out.println("History List size for  : " + exchange + " : " + symbol + " Size = " + symbolHistoryList.size());
 
-        findHotSpot(symbolHistoryList);
+        findHotSpot(symbolHistoryList, exchange, symbol);
         System.out.println("### hotspot list size : " + hotSpots.size());
     }
 
-    private void findHotSpot(ArrayList<HistoryObject> historyList) {
+    private void findHotSpot(ArrayList<HistoryObject> historyList, String exchange, String symbol) {
         int position = 4; //starting from 4th position to compare 4 pair of dates
+        ArrayList<String> annDates = getAnnDates(exchange, symbol);
+        ArrayList<String> newsDates = getNewsDates(exchange, symbol);
 
         while (position <= (historyList.size() - 1)) {
             HistoryObject currentObject = historyList.get(position);
@@ -99,13 +101,18 @@ public class HotSpotInspector {
                     hotSpots.put(currentObject.getExchange(), exchangeHotSpots);
                 }
 
+                boolean isAnnAvailable = annDates.contains(currentObject.getDate());
+                boolean isNewsAvailable = newsDates.contains(currentObject.getDate());
+
                 HotSpot hotSpot = new HotSpot(currentObject.getExchange(), currentObject.getSymbol(), currentObject.getDate()
                         , currentTrend, previousTrend.getTrend(), previousTrend.getWeight()
-                        , isAnnsAvailable(currentObject),isNewsAvailable(currentObject) );
+                        , isAnnAvailable, isNewsAvailable);
 
                 exchangeHotSpots.add(hotSpot);
 
-                addHotSpotData(hotSpot);
+                if(isAnnAvailable || isNewsAvailable) {
+                    addHotSpotData(hotSpot);
+                }
 
                 System.out.println("**** Hotspot Added  : " + currentTrend + " : " + previousTrend.getTrend() + " : "
                         + previousTrend.getWeight() + " : " + currentObject.getDate());
@@ -170,26 +177,24 @@ public class HotSpotInspector {
         return new HistoricalTrend(prevTrend, weight);
     }
 
-    private boolean isNewsAvailable(HistoryObject historyObject){
-        boolean isNewsAvailable = false;
+    private ArrayList<String> getAnnDates(String exchange, String symbol){
+        ArrayList<String> annsDates = new ArrayList<String>();
         Connection dbConnection = sqlConnector.connect();
 
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select news_id from msc.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?;";
+            String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%M-%Y')) from msc.announcements where  exchange = ? and symbol = ?;";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
-                statement.setString(1, historyObject.getDate());
-                statement.setString(2, historyObject.getExchange());
-                statement.setString(3, historyObject.getSymbol());
+                statement.setString(1, exchange);
+                statement.setString(2, symbol);
                 ResultSet rs = statement.executeQuery();
 
 
                 while (rs.next()) {
-                    System.out.println("News ID " + rs.getInt(1));
-                    isNewsAvailable = true;
-                    break;
+                    System.out.println("Ann Date " + rs.getString(1));
+                    annsDates.add(rs.getString(1));
                 }
 
             } catch (SQLException e) {
@@ -198,30 +203,28 @@ public class HotSpotInspector {
             }
         }
 
-        System.out.println("Is News Available: " + isNewsAvailable);
-        return isNewsAvailable;
+        System.out.println("Ann Size for : " + exchange + " " + symbol + " : " + annsDates.size());
+        return annsDates;
     }
 
-    private boolean isAnnsAvailable(HistoryObject historyObject){
-        boolean isAnnsAvailable = false;
+    private ArrayList<String> getNewsDates(String exchange, String symbol){
+        ArrayList<String> newsDates = new ArrayList<String>();
         Connection dbConnection = sqlConnector.connect();
 
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select ann_id from msc.announcements where str_to_date(ANN_DATE, '%d-%M-%Y') = ? and exchange = ? and symbol = ?;";
+            String createTableSQL = "select distinct(str_to_date(NEWS_DATE, '%m/%d/%Y')) from msc.news where exchange = ? and symbol = ?;";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
-                statement.setString(1, historyObject.getDate());
-                statement.setString(2, historyObject.getExchange());
-                statement.setString(3, historyObject.getSymbol());
+                statement.setString(1, exchange);
+                statement.setString(2, symbol);
                 ResultSet rs = statement.executeQuery();
 
 
                 while (rs.next()) {
-                    System.out.println("Ann ID " + rs.getInt(1));
-                    isAnnsAvailable = true;
-                    break;
+                    System.out.println("News Date " + rs.getString(1));
+                    newsDates.add(rs.getString(1));
                 }
 
             } catch (SQLException e) {
@@ -230,8 +233,8 @@ public class HotSpotInspector {
             }
         }
 
-        System.out.println("Is Anns Available: " + isAnnsAvailable);
-        return isAnnsAvailable;
+        System.out.println("News Size for : " + exchange + " " + symbol + " : " + newsDates.size());
+        return newsDates;
     }
 
     private boolean addHotSpotData(HotSpot hotSpot){
