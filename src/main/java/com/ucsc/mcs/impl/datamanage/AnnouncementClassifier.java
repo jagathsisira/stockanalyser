@@ -2,6 +2,10 @@ package com.ucsc.mcs.impl.datamanage;
 
 import com.ucsc.mcs.impl.connector.SqlConnector;
 import com.ucsc.mcs.impl.data.AnnouncementData;
+import com.ucsc.mcs.impl.data.TextEntry;
+import com.ucsc.mcs.impl.classifier.TextClassificationStore;
+import com.ucsc.mcs.impl.utils.TextUtils;
+import com.uttesh.exude.ExudeData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,20 +18,19 @@ import java.util.ArrayList;
  */
 public class AnnouncementClassifier {
     private SqlConnector sqlConnector = null;
-    private ArrayList<AnnouncementData> annsList = null;
 
     public AnnouncementClassifier(SqlConnector sqlConnector) {
         this.sqlConnector = sqlConnector;
     }
 
-    public void classifyNews(){
+    public void classifyAnnouncements(){
         loadAnnouncements();
         countAnnsWords();
     }
 
     private void loadAnnouncements(){
         Connection dbConnection = sqlConnector.connect();
-        annsList = new ArrayList<AnnouncementData>();
+        int count = 0;
 
         if (dbConnection != null) {
             PreparedStatement statement = null;
@@ -44,7 +47,12 @@ public class AnnouncementClassifier {
                     int trend = rs.getInt(4);
                     int weight = rs.getInt(5);
                     System.out.println("Anns " + exchange + " : " + symbol + " : " + spotDate + " : " + trend + " : " + weight);
-                    annsList.add(new AnnouncementData(exchange, symbol, spotDate, trend, weight));
+                    TextClassificationStore.getInstance().getAnnouncementsList().add(new AnnouncementData(exchange, symbol, spotDate, trend, weight));
+                    count ++;
+
+                    if(count == 2){
+                        break;
+                    }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -52,17 +60,17 @@ public class AnnouncementClassifier {
             }
         }
 
-        System.out.println("Anns List count " + annsList.size());
+        System.out.println("Anns List count " + TextClassificationStore.getInstance().getAnnouncementsList().size());
     }
 
     private void countAnnsWords(){
         Connection dbConnection = sqlConnector.connect();
 
-        for(AnnouncementData announcementData : annsList) {
+        for(AnnouncementData announcementData : TextClassificationStore.getInstance().getAnnouncementsList()) {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
-                String createTableSQL = "select heading, body from msc.announcements where str_to_date(ANN_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
+                String createTableSQL = "select heading, body from msc.announcements where str_to_date(ANN_DATE, '%d-%b-%y') = ? and exchange = ? and symbol = ?";
                 try {
                     statement = dbConnection.prepareStatement(createTableSQL);
                     statement.setString(1, announcementData.getAnnDate());
@@ -74,16 +82,30 @@ public class AnnouncementClassifier {
                         String heading = rs.getString(1);
                         String body = rs.getString(2);
                         System.out.println("Anns details : " + heading + " : " +body );
-                        announcementData.setAnnHeading(heading);
-                        announcementData.setAnnBody(body);
+                        announcementData.setAnnHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading + " " + body))));
+                        updateTextClassifier(announcementData);
                     }
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
                 }
             }
         }
+    }
 
+    private void updateTextClassifier(AnnouncementData annData){
+        String[] words = annData.getAnnHeading().split(" ");
+        String refactoredWord = "";
 
+        for(String word : words){
+            refactoredWord = word.toLowerCase().replaceAll("[0-9]", "");
+            if(refactoredWord.length() > 1) {
+                TextEntry textEntry = new TextEntry(refactoredWord.toLowerCase());
+                textEntry.setScore(annData.getWeight() * annData.getTrend());
+                TextClassificationStore.getInstance().addTextClassificationForText(refactoredWord.toLowerCase(), textEntry);
+            } else {
+                System.out.println("Numerical or shorter word found - ignoring : " + word);
+            }
+        }
     }
 }

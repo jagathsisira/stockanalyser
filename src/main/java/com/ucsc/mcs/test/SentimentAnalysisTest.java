@@ -24,7 +24,8 @@ public class SentimentAnalysisTest {
 
 // Two examples to learn from.
         String[] positiveText = "I love sunny days".split("\\s");
-        String[] negativeText = "I hate rain day".split("\\s");
+        String[] negativeText = "I hate will a days".split("\\s");
+        String[] neutralText = "I hate a days".split("\\s");
 
 // Learn by classifying examples.
 // New categories can be added on the fly, when they are first used.
@@ -32,6 +33,7 @@ public class SentimentAnalysisTest {
 // that resulted in the classification in that category.
         bayes.learn("positive", Arrays.asList(positiveText));
         bayes.learn("negative", Arrays.asList(negativeText));
+        bayes.learn("neutral", Arrays.asList(neutralText));
 
 // Here are two unknown sentences to classify.
         String[] unknownText1 = "today is a days".split(" ");

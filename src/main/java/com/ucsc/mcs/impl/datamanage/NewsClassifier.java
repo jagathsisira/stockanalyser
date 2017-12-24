@@ -2,7 +2,12 @@ package com.ucsc.mcs.impl.datamanage;
 
 import com.ucsc.mcs.impl.connector.SqlConnector;
 import com.ucsc.mcs.impl.data.NewsData;
+import com.ucsc.mcs.impl.data.TextEntry;
+import com.ucsc.mcs.impl.classifier.TextClassificationStore;
+import com.ucsc.mcs.impl.utils.TextUtils;
+import com.uttesh.exude.ExudeData;
 
+import javax.xml.soap.Text;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,20 +20,19 @@ import java.util.ArrayList;
 public class NewsClassifier {
 
     private SqlConnector sqlConnector = null;
-    private ArrayList<NewsData> newsList = null;
 
     public NewsClassifier(SqlConnector sqlConnector) {
         this.sqlConnector = sqlConnector;
     }
 
-    public void classifyNews(){
+    public void classifyNews() {
         loadNews();
         countNewsWords();
     }
 
-    private void loadNews(){
+    private void loadNews() {
+        int count = 0;
         Connection dbConnection = sqlConnector.connect();
-        newsList = new ArrayList<NewsData>();
 
         if (dbConnection != null) {
             PreparedStatement statement = null;
@@ -45,7 +49,12 @@ public class NewsClassifier {
                     int trend = rs.getInt(4);
                     int weight = rs.getInt(5);
                     System.out.println("News " + exchange + " : " + symbol + " : " + spotDate + " : " + trend + " : " + weight);
-                    newsList.add(new NewsData(exchange, symbol, spotDate, trend, weight));
+                    TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
+                    count++;
+
+                    if (count == 4) {
+                        break;
+                    }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -53,13 +62,13 @@ public class NewsClassifier {
             }
         }
 
-        System.out.println("News List count " + newsList.size());
+        System.out.println("News List count " + TextClassificationStore.getInstance().getNewsList().size());
     }
 
-    private void countNewsWords(){
+    private void countNewsWords() {
         Connection dbConnection = sqlConnector.connect();
 
-        for(NewsData newsData : newsList) {
+        for (NewsData newsData : TextClassificationStore.getInstance().getNewsList()) {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
@@ -74,17 +83,31 @@ public class NewsClassifier {
                     while (rs.next()) {
                         String heading = rs.getString(1);
                         String body = rs.getString(2);
-                        System.out.println("News details : " + heading + " : " +body );
-                        newsData.setNewsHeading(heading);
-                        newsData.setNewsBody(body);
+                        System.out.println("News details : " + newsData.getNewsDate() + " " + newsData.getTrend() + " " + newsData.getWeight() + " " + heading + " : " + body);
+                        newsData.setNewsHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading + " " + body))));
+                        updateTextClassifier(newsData);
                     }
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
                 }
             }
         }
+    }
 
+    private void updateTextClassifier(NewsData newsData) {
+        String[] words = newsData.getNewsHeading().split(" ");
+        String refactoredWord = "";
 
+        for (String word : words) {
+            refactoredWord = word.toLowerCase().replaceAll("[0-9]", "");
+            if (refactoredWord.length() > 1) {
+                TextEntry textEntry = new TextEntry(refactoredWord.toLowerCase());
+                textEntry.setScore(newsData.getWeight() * newsData.getTrend());
+                TextClassificationStore.getInstance().addTextClassificationForText(refactoredWord.toLowerCase(), textEntry);
+            } else {
+                System.out.println("Numerical or shorter  word found - ignoring : " + word);
+            }
+        }
     }
 }
