@@ -100,24 +100,24 @@ public class TextClassificationStore {
             System.out.println("----- " + key + " " + (totalCountNegative + totalCountPositive) + " "
                     + totalPositiveAvg + " " + totalNegativeAvg);
 
-            if (dbConnection != null) {
-                PreparedStatement statement = null;
-
-                String createTableSQL = "insert into msc.classifier values (?,?,?)";
-                try {
-                    statement = dbConnection.prepareStatement(createTableSQL);
-                    statement.setString(1, key);
-                    statement.setInt(2, (totalCountNegative + totalCountPositive));
-                    System.out.println(">>> " +totalCountPositive + " " + totalCountNegative + " " + totalWeightPositive + " " + totalWeightNegative);
-                    statement.setDouble(3, (totalPositiveAvg + totalNegativeAvg));
-
-                    statement.executeUpdate();
-
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } finally {
-                }
-            }
+//            if (dbConnection != null) {
+//                PreparedStatement statement = null;
+//
+//                String createTableSQL = "insert into msc.classifier values (?,?,?)";
+//                try {
+//                    statement = dbConnection.prepareStatement(createTableSQL);
+//                    statement.setString(1, key);
+//                    statement.setInt(2, (totalCountNegative + totalCountPositive));
+//                    System.out.println(">>> " +totalCountPositive + " " + totalCountNegative + " " + totalWeightPositive + " " + totalWeightNegative);
+//                    statement.setDouble(3, (totalPositiveAvg + totalNegativeAvg));
+//
+//                    statement.executeUpdate();
+//
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                } finally {
+//                }
+//            }
 
             if((totalPositiveAvg + totalNegativeAvg) > 0){
                 positiveWords.add(key);

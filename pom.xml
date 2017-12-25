@@ -45,12 +45,29 @@
             <artifactId>logback-classic</artifactId>
             <version>${logback-classic-version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.wanasit</groupId>
+            <artifactId>litesvm</artifactId>
+            <version>LATEST</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf</groupId>
+            <artifactId>javaml</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>litesvm-mvn-repo</id>
+            <url>https://raw.github.com/wanasit/LiteSVM/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
         </repository>
     </repositories>
 

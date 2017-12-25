@@ -50,7 +50,7 @@ public class AnnouncementClassifier {
                     TextClassificationStore.getInstance().getAnnouncementsList().add(new AnnouncementData(exchange, symbol, spotDate, trend, weight));
                     count ++;
 
-                    if(count == 2){
+                    if(count == 1000){
                         break;
                     }
                 }

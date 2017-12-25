@@ -43,7 +43,7 @@ public class TextClassification {
     }
 
 //    private static void classifyText() throws URISyntaxException {
-    public void classifyText() {
+public void classifyText() {
         /**
          * There are 5 configuration files in the resources folder:
          *
@@ -69,7 +69,6 @@ public class TextClassification {
         //------------
         Map<Object, URI> datasets = new HashMap<>(); //The examples of each category are stored on the same file, one example per row.
         try {
-//            datasets.put("positive", TextClassification.class.getClassLoader().getResource("./src/main/resources/positive.txt").toURI());
             datasets.put("positive", new File("./src/main/resources/positive.txt").toURI());
             datasets.put("negative", new File("./src/main/resources/negative.txt").toURI());
         } catch (Exception e) {

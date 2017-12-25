@@ -1,6 +1,7 @@
 package com.ucsc.mcs.impl;
 
-import com.ucsc.mcs.impl.classifier.TextClassification;
+import com.ucsc.mcs.impl.classifier.NaiveBayesClassifier;
+import com.ucsc.mcs.impl.classifier.SvmClassifier;
 import com.ucsc.mcs.impl.connector.MySqlConnector;
 import com.ucsc.mcs.impl.datamanage.AnnouncementClassifier;
 import com.ucsc.mcs.impl.datamanage.NewsClassifier;
@@ -33,9 +34,10 @@ public class StockAnalyserMain {
         AnnouncementClassifier announcementClassifier = new AnnouncementClassifier(MySqlConnector.getInstance());
         announcementClassifier.classifyAnnouncements();
 
-//        TextClassificationStore.getInstance().updateClassifierDatabase(MySqlConnector.getInstance());
+        TextClassificationStore.getInstance().updateClassifierDatabase(MySqlConnector.getInstance());
         TextClassificationStore.getInstance().printStoreStats();
-//        TextClassificationStore.getInstance().updateClassifierTextFile();
-        TextClassification.getInstance().classifyText();
+//        NaiveBayesClassifier.getInstance().predict(MySqlConnector.getInstance());
+        SvmClassifier.getInstance().predict(MySqlConnector.getInstance());
     }
+
 }

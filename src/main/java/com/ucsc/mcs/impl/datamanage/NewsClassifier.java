@@ -52,7 +52,7 @@ public class NewsClassifier {
                     TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
                     count++;
 
-                    if (count == 4) {
+                    if (count == 1000) {
                         break;
                     }
                 }
