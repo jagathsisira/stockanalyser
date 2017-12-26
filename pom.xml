@@ -50,11 +50,7 @@
             <artifactId>litesvm</artifactId>
             <version>LATEST</version>
         </dependency>
-        <dependency>
-            <groupId>net.sf</groupId>
-            <artifactId>javaml</artifactId>
-            <version>LATEST</version>
-        </dependency>
+
     </dependencies>
     <repositories>
         <repository>
