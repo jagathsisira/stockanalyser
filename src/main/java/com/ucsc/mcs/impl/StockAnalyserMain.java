@@ -5,6 +5,7 @@ import com.ucsc.mcs.impl.classifier.SvmClassifier;
 import com.ucsc.mcs.impl.connector.MySqlConnector;
 import com.ucsc.mcs.impl.datamanage.AnnouncementClassifier;
 import com.ucsc.mcs.impl.datamanage.DataCleanser;
+import com.ucsc.mcs.impl.datamanage.HotSpotInspector;
 import com.ucsc.mcs.impl.datamanage.NewsClassifier;
 import com.ucsc.mcs.impl.classifier.TextClassificationStore;
 
@@ -22,7 +23,7 @@ public class StockAnalyserMain {
     }
 
     private void execute(){
-        DataCleanser dataCleanser = new DataCleanser(MySqlConnector.getInstance());
+//        DataCleanser dataCleanser = new DataCleanser(MySqlConnector.getInstance());
 //        dataCleanser.cleanAndInsertInitialAnnData();
 //        dataCleanser.cleanAndInsertInitialNewsData();
 //        dataCleanser.cleanAndInsertInitialHistoryData();
@@ -31,14 +32,14 @@ public class StockAnalyserMain {
 
 //        NewsClassifier newsClassifier = new NewsClassifier(MySqlConnector.getInstance());
 //        newsClassifier.classifyNews();
-//
+
 //        AnnouncementClassifier announcementClassifier = new AnnouncementClassifier(MySqlConnector.getInstance());
 //        announcementClassifier.classifyAnnouncements();
 //
 //        TextClassificationStore.getInstance().updateClassifierDatabase(MySqlConnector.getInstance());
 //        TextClassificationStore.getInstance().printStoreStats();
 //        NaiveBayesClassifier.getInstance().predict(MySqlConnector.getInstance());
-//        SvmClassifier.getInstance().predict(MySqlConnector.getInstance());
+        SvmClassifier.getInstance().predict(MySqlConnector.getInstance());
     }
 
 }

@@ -52,7 +52,7 @@ public class NaiveBayesClassifier {
         bayes.learn("negative", negativeWords);
 
 
-        for(NewsData newsData : TextClassificationStore.getInstance().getNewsList()) {
+        for(NewsData newsData : TextClassificationStore.getInstance().loadNewsFromFile()) {
             //Classify a single sentence
             String sentence = newsData.getNewsHeading();
             String originalTrend = newsData.getTrend() > 0 ? "positive" : "negative";
@@ -61,7 +61,7 @@ public class NaiveBayesClassifier {
             results.add(originalTrend.equalsIgnoreCase(predictedTrend));
         }
 
-        for(AnnouncementData announcementData : TextClassificationStore.getInstance().getAnnouncementsList()) {
+        for(AnnouncementData announcementData : TextClassificationStore.getInstance().loadAnnouncementsFromFile()) {
             //Classify a single sentence
             String sentence = announcementData.getAnnHeading();
             String originalTrend = announcementData.getTrend() > 0 ? "positive" : "negative";

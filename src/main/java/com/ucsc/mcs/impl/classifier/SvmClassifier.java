@@ -61,7 +61,7 @@ public class SvmClassifier {
          * same one.
          */
 
-            for (NewsData newsData : TextClassificationStore.getInstance().getNewsList()) {
+            for (NewsData newsData : TextClassificationStore.getInstance().loadNewsFromFile()) {
                 //Classify a single sentence
                 String sentence = newsData.getNewsHeading();
                 String originalTrend = newsData.getTrend() > 0 ? "positive" : "negative";
@@ -91,7 +91,7 @@ public class SvmClassifier {
             }
 
 
-            for (AnnouncementData announcementData : TextClassificationStore.getInstance().getAnnouncementsList()) {
+            for (AnnouncementData announcementData : TextClassificationStore.getInstance().loadAnnouncementsFromFile()) {
                 //Classify a single sentence
                 String sentence = announcementData.getAnnHeading();
                 String originalTrend = announcementData.getTrend() > 0 ? "positive" : "negative";

@@ -1,9 +1,11 @@
 package com.ucsc.mcs.impl.data;
 
+import java.io.Serializable;
+
 /**
  * Created by JagathA on 11/13/2017.
  */
-public class AnnouncementData {
+public class AnnouncementData implements Serializable {
 
     private String exchange;
     private String symbol;

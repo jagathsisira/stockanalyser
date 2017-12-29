@@ -7,6 +7,9 @@ import com.ucsc.mcs.impl.classifier.TextClassificationStore;
 import com.ucsc.mcs.impl.utils.TextUtils;
 import com.uttesh.exude.ExudeData;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,6 +29,7 @@ public class AnnouncementClassifier {
     public void classifyAnnouncements(){
         loadAnnouncements();
         countAnnsWords();
+        dumpAnnouncements();
     }
 
     private void loadAnnouncements(){
@@ -50,7 +54,7 @@ public class AnnouncementClassifier {
                     TextClassificationStore.getInstance().getAnnouncementsList().add(new AnnouncementData(exchange, symbol, spotDate, trend, weight));
                     count ++;
 
-                    if(count == 1000){
+                    if(count == 100){
                         break;
                     }
                 }
@@ -82,7 +86,8 @@ public class AnnouncementClassifier {
                         String heading = rs.getString(1);
                         String body = rs.getString(2);
                         System.out.println("Anns details : " + heading);
-                        announcementData.setAnnHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading))));
+                        announcementData.setAnnHeading(String.join(" ", TextUtils.parseSentences(ExudeData
+                                .getInstance().filterStoppingsKeepDuplicates(heading + " " + body))));
                         updateTextClassifier(announcementData);
                     }
                 } catch (Exception e) {
@@ -103,9 +108,11 @@ public class AnnouncementClassifier {
                 TextEntry textEntry = new TextEntry(refactoredWord.toLowerCase());
                 textEntry.setScore(annData.getWeight() * annData.getTrend());
                 TextClassificationStore.getInstance().addTextClassificationForText(refactoredWord.toLowerCase(), textEntry);
-            } else {
-                System.out.println("Numerical or shorter word found - ignoring : " + word);
             }
         }
+    }
+
+    private void dumpAnnouncements(){
+        TextClassificationStore.getInstance().dumpAnnouncements();
     }
 }

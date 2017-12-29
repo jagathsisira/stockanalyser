@@ -115,7 +115,7 @@ public class HotSpotInspector {
                 }
 
                 System.out.println("**** Hotspot Added  : " + currentTrend + " : " + previousTrend.getTrend() + " : "
-                        + previousTrend.getWeight() + " : " + currentObject.getDate());
+                        + previousTrend.getWeight() + " : " + previousObject.getDate());
             }
             position++;
         }

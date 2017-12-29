@@ -28,6 +28,7 @@ public class NewsClassifier {
     public void classifyNews() {
         loadNews();
         countNewsWords();
+        dumpNews();
     }
 
     private void loadNews() {
@@ -52,7 +53,7 @@ public class NewsClassifier {
                     TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
                     count++;
 
-                    if (count == 1000) {
+                    if (count == 100) {
                         break;
                     }
                 }
@@ -72,7 +73,8 @@ public class NewsClassifier {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
-                String createTableSQL = "select heading, body from msc.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
+//                String createTableSQL = "select heading, body from msc.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
+                String createTableSQL = "select heading, body from msc.news where NEWS_DATE = ? and exchange = ? and symbol = ?";
                 try {
                     statement = dbConnection.prepareStatement(createTableSQL);
                     statement.setString(1, newsData.getNewsDate());
@@ -84,7 +86,8 @@ public class NewsClassifier {
                         String heading = rs.getString(1);
                         String body = rs.getString(2);
                         System.out.println("News details : " + newsData.getNewsDate() + " " + newsData.getTrend() + " " + newsData.getWeight() + " " + heading + " : " + body);
-                        newsData.setNewsHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading))));
+                        newsData.setNewsHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance()
+                                .filterStoppingsKeepDuplicates(heading + " " + body))));
                         updateTextClassifier(newsData);
                     }
                 } catch (Exception e) {
@@ -105,9 +108,11 @@ public class NewsClassifier {
                 TextEntry textEntry = new TextEntry(refactoredWord.toLowerCase());
                 textEntry.setScore(newsData.getWeight() * newsData.getTrend());
                 TextClassificationStore.getInstance().addTextClassificationForText(refactoredWord.toLowerCase(), textEntry);
-            } else {
-                System.out.println("Numerical or shorter  word found - ignoring : " + word);
             }
         }
+    }
+
+    private void dumpNews(){
+        TextClassificationStore.getInstance().dumpNews();
     }
 }
