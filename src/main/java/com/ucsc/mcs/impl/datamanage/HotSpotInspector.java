@@ -97,14 +97,14 @@ public class HotSpotInspector {
                 ArrayList<HotSpot> exchangeHotSpots = hotSpots.get(currentObject.getExchange());
 
                 if(exchangeHotSpots == null){
-                    exchangeHotSpots = new ArrayList<HotSpot>();
+                    exchangeHotSpots = new ArrayList<>();
                     hotSpots.put(currentObject.getExchange(), exchangeHotSpots);
                 }
 
-                boolean isAnnAvailable = annDates.contains(currentObject.getDate());
-                boolean isNewsAvailable = newsDates.contains(currentObject.getDate());
+                boolean isAnnAvailable = annDates.contains(previousObject.getDate());
+                boolean isNewsAvailable = newsDates.contains(previousObject.getDate());
 
-                HotSpot hotSpot = new HotSpot(currentObject.getExchange(), currentObject.getSymbol(), currentObject.getDate()
+                HotSpot hotSpot = new HotSpot(currentObject.getExchange(), currentObject.getSymbol(), previousObject.getDate()
                         , currentTrend, previousTrend.getTrend(), previousTrend.getWeight()
                         , isAnnAvailable, isNewsAvailable);
 
@@ -184,7 +184,8 @@ public class HotSpotInspector {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%M-%Y')) from msc.announcements where  exchange = ? and symbol = ?;";
+//            String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%M-%Y')) from msc.announcements where  exchange = ? and symbol = ?;";
+            String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%b-%y')) from msc.announcements where  exchange = ? and symbol = ?;";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 statement.setString(1, exchange);
@@ -214,7 +215,7 @@ public class HotSpotInspector {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select distinct(str_to_date(NEWS_DATE, '%m/%d/%Y')) from msc.news where exchange = ? and symbol = ?;";
+            String createTableSQL = "select distinct(str_to_date(NEWS_DATE, '%Y-%m-%d')) from msc.news where exchange = ? and symbol = ?;";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 statement.setString(1, exchange);

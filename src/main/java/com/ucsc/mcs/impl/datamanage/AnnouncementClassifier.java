@@ -81,8 +81,8 @@ public class AnnouncementClassifier {
                     while (rs.next()) {
                         String heading = rs.getString(1);
                         String body = rs.getString(2);
-                        System.out.println("Anns details : " + heading + " : " +body );
-                        announcementData.setAnnHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading + " " + body))));
+                        System.out.println("Anns details : " + heading);
+                        announcementData.setAnnHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading))));
                         updateTextClassifier(announcementData);
                     }
                 } catch (Exception e) {

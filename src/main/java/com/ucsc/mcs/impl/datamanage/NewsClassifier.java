@@ -84,7 +84,7 @@ public class NewsClassifier {
                         String heading = rs.getString(1);
                         String body = rs.getString(2);
                         System.out.println("News details : " + newsData.getNewsDate() + " " + newsData.getTrend() + " " + newsData.getWeight() + " " + heading + " : " + body);
-                        newsData.setNewsHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading + " " + body))));
+                        newsData.setNewsHeading(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance().filterStoppingsKeepDuplicates(heading))));
                         updateTextClassifier(newsData);
                     }
                 } catch (Exception e) {
