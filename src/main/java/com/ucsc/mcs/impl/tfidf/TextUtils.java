@@ -1,7 +1,6 @@
-package com.ucsc.mcs.impl.utils;
+package com.ucsc.mcs.impl.tfidf;
 
-import com.ucsc.mcs.impl.data.TextEntry;
-import com.ucsc.mcs.impl.classifier.TextClassificationStore;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import java.util.Set;
  * Created by JagathA on 11/24/2017.
  */
 public class TextUtils {
+    private static final SnowballStemmer snowballStemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
 
     private static String STOP_LIST_FILE = "stoplist.txt";
 
@@ -60,6 +60,25 @@ public class TextUtils {
         return wordList;
     }
 
+    public static List<String> parseSentences(String sentence, boolean isStem){
+        if(isStem){
+            return stemWords(parseSentences(sentence));
+        } else {
+            return parseSentences(sentence);
+        }
+    }
+
+    public static List<String> stemWords(List<String> words){
+        List<String> updatedList = new ArrayList<>();
+        for(String word: words) {
+            String refactored = (String) (snowballStemmer.stem(word.toLowerCase().replaceAll("[0-9]", "")));
+            if(refactored.length() > 1){
+                updatedList.add(refactored);
+            }
+        }
+        return updatedList;
+    }
+
     public static void writeToFile(String fileName, ArrayList<String> data) throws FileNotFoundException, IOException {
         FileOutputStream out = null;
 
@@ -75,5 +94,15 @@ public class TextUtils {
                 out.close();
             }
         }
+    }
+
+    public static List<String> removeDuplicates(List<String> document){
+        List<String> updatedDocument = new ArrayList<>();
+        for(String word: document){
+            if(!updatedDocument.contains(word)){
+                updatedDocument.add(word);
+            }
+        }
+        return updatedDocument;
     }
 }

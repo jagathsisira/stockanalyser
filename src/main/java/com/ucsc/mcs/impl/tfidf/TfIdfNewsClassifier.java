@@ -1,33 +1,67 @@
-package com.ucsc.mcs.impl.datamanage;
+package com.ucsc.mcs.impl.tfidf;
 
-import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
 import com.ucsc.mcs.impl.data.NewsData;
-import com.ucsc.mcs.impl.tfidf.TextEntry;
-import com.ucsc.mcs.impl.tfidf.TextClassificationStore;
-import com.ucsc.mcs.impl.tfidf.TextUtils;
+import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
+import com.ucsc.mcs.impl.tfidf.connector.WeightedDocument;
 import com.uttesh.exude.ExudeData;
+import com.uttesh.exude.exception.InvalidDataException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.*;
 
 /**
- * Created by JagathA on 11/13/2017.
+ * Created by JagathA on 1/20/2018.
  */
-public class NewsClassifier {
+public class TfIdfNewsClassifier {
 
     private SqlConnector sqlConnector = null;
 
-    public NewsClassifier(SqlConnector sqlConnector) {
+    private List<TfIdfNewsData> tfIdfNewsDataArrayList = new ArrayList<>();
+
+    public TfIdfNewsClassifier(SqlConnector sqlConnector){
         this.sqlConnector = sqlConnector;
     }
 
     public void classifyNews() {
-        loadNews();
-        countNewsWords();
-        dumpNews();
+//        this.loadNews();
+//        this.countNewsWords();
+//        this.dumpNews();
+        this.calculateTermWeights();
+//        this.calculateTfIdfValues();
     }
+
+    private void calculateTermWeights(){
+        for(NewsData newsData : TextClassificationStore.getInstance().loadNewsFromFile()){
+            try {
+
+                List<String> document = TextUtils.parseSentences(ExudeData
+                        .getInstance().filterStoppingsKeepDuplicates(newsData.getNewsHeading()), true);
+//                System.out.println("Original : " + document.toString());
+//                System.out.println("Updated : " + TextUtils.removeDuplicates(document));
+                TextClassificationStore.getWeightedDocumentList().add(new WeightedDocument(document, newsData.getWeight()));
+//                tfIdfNewsDataArrayList.add(new TfIdfNewsData(newsData, document));
+            } catch (InvalidDataException e) {
+                System.out.println("Error data News : " + newsData.getNewsHeading());
+            }
+        }
+
+        System.out.println("+++++++++++ News Docs Size " + TextClassificationStore.getWeightedDocumentList().size());
+    }
+
+//    private void calculateTfIdfValues(){
+//        for(TfIdfNewsData newsData : tfIdfNewsDataArrayList){
+//            for(String term : newsData.getDocument()){
+//                double tfIdf = TFIDFCalculator.getInstance().tfIdf(newsData.getDocument(), documentList, term);
+//                System.out.println("Term: " + term + " : TFIDF : " + tfIdf);
+//                TextEntry textEntry = new TextEntry(term);
+//                textEntry.setScore(newsData.getTrend() * newsData.getWeight() * tfIdf);
+//                TextClassificationStore.getInstance().addTextClassificationForText(term, textEntry, false);
+//            }
+//        }
+//    }
 
     private void loadNews() {
         int count = 0;
@@ -49,10 +83,6 @@ public class NewsClassifier {
                     int weight = rs.getInt(5);
                     TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
                     count++;
-
-//                    if (count == 10) {
-//                        break;
-//                    }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();

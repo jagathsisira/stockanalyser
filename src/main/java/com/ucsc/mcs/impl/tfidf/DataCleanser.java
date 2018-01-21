@@ -1,7 +1,7 @@
-package com.ucsc.mcs.impl.datamanage;
+package com.ucsc.mcs.impl.tfidf;
 
 import com.monitorjbl.xlsx.StreamingReader;
-import com.ucsc.mcs.impl.connector.SqlConnector;
+import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -10,9 +10,7 @@ import org.jsoup.Jsoup;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by JagathA on 8/11/2017.

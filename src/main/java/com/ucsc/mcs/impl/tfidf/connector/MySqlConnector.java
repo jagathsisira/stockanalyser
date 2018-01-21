@@ -1,4 +1,4 @@
-package com.ucsc.mcs.impl.connector;
+package com.ucsc.mcs.impl.tfidf.connector;
 
 
 import java.sql.Connection;

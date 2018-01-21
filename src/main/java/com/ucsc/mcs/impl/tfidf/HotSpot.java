@@ -1,4 +1,4 @@
-package com.ucsc.mcs.impl.data;
+package com.ucsc.mcs.impl.tfidf;
 
 /**
  * Created by JagathA on 11/12/2017.

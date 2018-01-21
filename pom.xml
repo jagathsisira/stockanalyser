@@ -60,6 +60,12 @@
             <artifactId>xlsx-streamer</artifactId>
             <version>1.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers</artifactId>
+            <version>3.6.2</version>
+        </dependency>
+
     </dependencies>
     <repositories>
         <repository>

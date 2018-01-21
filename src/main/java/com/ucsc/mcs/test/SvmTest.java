@@ -32,6 +32,8 @@ public class SvmTest {
         String word6 = "profit";
         String word7 = "value";
         String word8 = "market";
+        String word9 = "market";
+    System.out.println(word8.hashCode() + " " + word9.hashCode());
         svm();
 //        bayes();
 
@@ -42,18 +44,22 @@ public class SvmTest {
 
     private static void svm() throws Exception {
          /* Load a data set */
-            Dataset data = FileHandler.loadDataset(new File("./src/main/resources/iris-var.data"),0, ",");
-        /*
-         * Contruct a LibSVM classifier with default settings.
-         */
+            Dataset data = FileHandler.loadDataset(new File("./src/main/resources/svmTfIdf1.data"),0, ",");
+    /*
+     * Contruct a LibSVM classifier with default settings.
+     */
+    System.out.println("Build SVM");
             Classifier svm = new LibSVM();
             svm.buildClassifier(data);
+    System.out.println("Build done");
 
         /*
          * Load a data set, this can be a different one, but we will use the
          * same one.
          */
-            Dataset dataForClassification = FileHandler.loadDataset(new File("./src/main/resources/iris-predict.data"),",");
+            Dataset dataForClassification = FileHandler.loadDataset(new File("./src/main/resources/iris-predict.data"),
+                    ",");
+//            Dataset dataForClassification = FileHandler.loadDataset(new File("./src/main/resources/iris-var.data"),0, ",");
         /* Counters for correct and wrong predictions. */
             int correct = 0, wrong = 0;
         /* Classify all instances and check with the correct class values */

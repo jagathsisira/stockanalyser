@@ -1,13 +1,6 @@
-package com.ucsc.mcs.impl;
+package com.ucsc.mcs.impl.tfidf;
 
-import com.ucsc.mcs.impl.classifier.NaiveBayesClassifier;
-import com.ucsc.mcs.impl.classifier.SvmClassifier;
-import com.ucsc.mcs.impl.connector.MySqlConnector;
-import com.ucsc.mcs.impl.datamanage.AnnouncementClassifier;
-import com.ucsc.mcs.impl.datamanage.DataCleanser;
-import com.ucsc.mcs.impl.datamanage.HotSpotInspector;
-import com.ucsc.mcs.impl.datamanage.NewsClassifier;
-import com.ucsc.mcs.impl.classifier.TextClassificationStore;
+import com.ucsc.mcs.impl.tfidf.connector.MySqlConnector;
 
 /**
  * Created by JagathA on 8/11/2017.
@@ -30,16 +23,32 @@ public class StockAnalyserMain {
 //        HotSpotInspector hotSpotInspector = new HotSpotInspector(MySqlConnector.getInstance());
 //        hotSpotInspector.getHotSpots();
 
+        //General
+
 //        NewsClassifier newsClassifier = new NewsClassifier(MySqlConnector.getInstance());
 //        newsClassifier.classifyNews();
-
+//
 //        AnnouncementClassifier announcementClassifier = new AnnouncementClassifier(MySqlConnector.getInstance());
 //        announcementClassifier.classifyAnnouncements();
-//
+
 //        TextClassificationStore.getInstance().updateClassifierDatabase(MySqlConnector.getInstance());
-//        TextClassificationStore.getInstance().printStoreStats();
 //        NaiveBayesClassifier.getInstance().predict(MySqlConnector.getInstance());
-        SvmClassifier.getInstance().predict(MySqlConnector.getInstance());
+//        SvmClassifier.getInstance().predict(MySqlConnector.getInstance());
+
+        //TFIDF
+
+        TfIdfNewsClassifier tfIdfNewsClassifier = new TfIdfNewsClassifier(MySqlConnector.getInstance());
+        tfIdfNewsClassifier.classifyNews();
+
+//        TfIdfAnnouncementClassifier tfIdfAnnouncementClassifier = new TfIdfAnnouncementClassifier(MySqlConnector.getInstance());
+//        tfIdfAnnouncementClassifier.classifyAnnouncements();
+//        TextClassificationStore.generateWordMaster();
+
+//        TextClassificationStore.getInstance().updateClassifierDatabaseTfIdf(MySqlConnector.getInstance());
+//        TextClassificationStore.getInstance().updateClassifierTextFileTfIdf();
+        SvmClassifierTfIdf.getInstance().predict(MySqlConnector.getInstance());
+
+
     }
 
 }

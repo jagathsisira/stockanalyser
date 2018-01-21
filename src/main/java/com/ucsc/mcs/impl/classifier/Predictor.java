@@ -9,8 +9,7 @@ import com.datumbox.framework.core.machinelearning.MLBuilder;
 import com.datumbox.framework.core.machinelearning.classification.MultinomialNaiveBayes;
 import com.datumbox.framework.core.machinelearning.featureselection.ChisquareSelect;
 import com.datumbox.framework.core.machinelearning.modelselection.metrics.ClassificationMetrics;
-import com.mysql.jdbc.MySQLConnection;
-import com.ucsc.mcs.impl.connector.MySqlConnector;
+import com.ucsc.mcs.impl.tfidf.connector.MySqlConnector;
 import com.ucsc.mcs.impl.data.AnnouncementData;
 import com.ucsc.mcs.impl.data.NewsData;
 

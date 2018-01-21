@@ -1,9 +1,6 @@
-package com.ucsc.mcs.impl.datamanage;
+package com.ucsc.mcs.impl.tfidf;
 
-import com.ucsc.mcs.impl.connector.SqlConnector;
-import com.ucsc.mcs.impl.data.HistoricalTrend;
-import com.ucsc.mcs.impl.data.HistoryObject;
-import com.ucsc.mcs.impl.data.HotSpot;
+import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
 
 import java.sql.*;
 import java.util.ArrayList;

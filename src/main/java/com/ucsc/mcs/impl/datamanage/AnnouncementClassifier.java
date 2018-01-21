@@ -1,20 +1,16 @@
 package com.ucsc.mcs.impl.datamanage;
 
-import com.ucsc.mcs.impl.connector.SqlConnector;
+import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
 import com.ucsc.mcs.impl.data.AnnouncementData;
-import com.ucsc.mcs.impl.data.TextEntry;
-import com.ucsc.mcs.impl.classifier.TextClassificationStore;
-import com.ucsc.mcs.impl.utils.TextUtils;
+import com.ucsc.mcs.impl.tfidf.TextEntry;
+import com.ucsc.mcs.impl.tfidf.TextClassificationStore;
+import com.ucsc.mcs.impl.tfidf.TextUtils;
 import com.uttesh.exude.ExudeData;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 /**
  * Created by JagathA on 11/13/2017.
@@ -50,13 +46,8 @@ public class AnnouncementClassifier {
                     String spotDate = rs.getString(3);
                     int trend = rs.getInt(4);
                     int weight = rs.getInt(5);
-                    System.out.println("Anns " + exchange + " : " + symbol + " : " + spotDate + " : " + trend + " : " + weight);
                     TextClassificationStore.getInstance().getAnnouncementsList().add(new AnnouncementData(exchange, symbol, spotDate, trend, weight));
                     count ++;
-
-                    if(count == 100){
-                        break;
-                    }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -83,12 +74,13 @@ public class AnnouncementClassifier {
                     ResultSet rs = statement.executeQuery();
 
                     while (rs.next()) {
-                        String heading = rs.getString(1);
-                        String body = rs.getString(2);
-                        System.out.println("Anns details : " + heading);
-                        announcementData.setAnnHeading(String.join(" ", TextUtils.parseSentences(ExudeData
-                                .getInstance().filterStoppingsKeepDuplicates(heading + " " + body))));
+                        String heading = rs.getString(1).toLowerCase();
+                        String body = rs.getString(2).toLowerCase();
+                        announcementData.setDataModelInput(String.join(" ", TextUtils.parseSentences(ExudeData
+                                .getInstance().filterStoppingsKeepDuplicates(heading))));
                         updateTextClassifier(announcementData);
+                        announcementData.setAnnHeading(heading);
+                        announcementData.setAnnBody(body);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -99,7 +91,7 @@ public class AnnouncementClassifier {
     }
 
     private void updateTextClassifier(AnnouncementData annData){
-        String[] words = annData.getAnnHeading().split(" ");
+        String[] words = annData.getDataModelInput().split(" ");
         String refactoredWord = "";
 
         for(String word : words){

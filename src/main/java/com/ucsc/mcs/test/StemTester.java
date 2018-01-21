@@ -2,6 +2,7 @@ package com.ucsc.mcs.test;
 
 import com.uttesh.exude.ExudeData;
 import com.uttesh.exude.exception.InvalidDataException;
+import opennlp.tools.stemmer.PorterStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 import java.io.*;
@@ -16,15 +17,22 @@ import java.util.Set;
 public class StemTester {
 
     public static void main(String[] args) {
-        String sentence = "she went home with his son by bus from London Euston station 12212 abc";
+        String sentence = "she went home with his son by bus from London Euston station 12212 abc increase increased " +
+                "increases";
         SnowballStemmer snowballStemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
-        System.out.println(snowballStemmer.stem("checked"));
+        System.out.println((String)snowballStemmer.stem(sentence));
+        System.out.println((String)snowballStemmer.stem("increases"));
 
         try {
             System.out.println(ExudeData.getInstance().filterStoppingsKeepDuplicates(sentence));
         } catch (InvalidDataException e) {
             e.printStackTrace();
         }
+
+
+//            PorterStemmer stemmer = new PorterStemmer();
+//            return stemmer.stem(term);
+//        }
 
         System.out.println(parseDocuments(sentence, loadStopWords("stoplist.txt")));
 

@@ -11,10 +11,10 @@ import com.datumbox.framework.core.machinelearning.featureselection.ChisquareSel
 import com.datumbox.framework.core.machinelearning.modelselection.metrics.ClassificationMetrics;
 import com.ucsc.mcs.impl.data.AnnouncementData;
 import com.ucsc.mcs.impl.data.NewsData;
+import com.ucsc.mcs.impl.tfidf.TextClassificationStore;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
