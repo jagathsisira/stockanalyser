@@ -10,6 +10,7 @@ public class AnnouncementData implements Serializable, Cloneable {
 
     private int trend;
     private int weight;
+    private String annId;
     private String exchange;
     private String symbol;
     private String annDate;
@@ -17,7 +18,8 @@ public class AnnouncementData implements Serializable, Cloneable {
     private String annBody;
     private String dataModelInput;
 
-    public AnnouncementData(String exchange, String symbol, String annDate, int trend, int weight) {
+    public AnnouncementData(String annId, String exchange, String symbol, String annDate, int trend, int weight) {
+        this.annId = annId;
         this.exchange = exchange;
         this.symbol = symbol;
         this.annDate = annDate;
@@ -67,6 +69,10 @@ public class AnnouncementData implements Serializable, Cloneable {
 
     public void setDataModelInput(String dataModelInput) {
         this.dataModelInput = dataModelInput;
+    }
+
+    public String getAnnId() {
+        return annId;
     }
 
     @Override

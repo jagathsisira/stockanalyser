@@ -37,16 +37,23 @@ public class StockAnalyserMain {
 
         //TFIDF
 
+//        TfIdfAnnouncementClassifier tfIdfAnnouncementClassifier = new TfIdfAnnouncementClassifier(MySqlConnector.getInstance());
+//        tfIdfAnnouncementClassifier.classifyAnnouncements();
+
         TfIdfNewsClassifier tfIdfNewsClassifier = new TfIdfNewsClassifier(MySqlConnector.getInstance());
         tfIdfNewsClassifier.classifyNews();
 
-//        TfIdfAnnouncementClassifier tfIdfAnnouncementClassifier = new TfIdfAnnouncementClassifier(MySqlConnector.getInstance());
-//        tfIdfAnnouncementClassifier.classifyAnnouncements();
-//        TextClassificationStore.generateWordMaster();
+        TextClassificationStore.dumpWeightedDocs();
+        TextClassificationStore.generateWordMaster();
+
 
 //        TextClassificationStore.getInstance().updateClassifierDatabaseTfIdf(MySqlConnector.getInstance());
 //        TextClassificationStore.getInstance().updateClassifierTextFileTfIdf();
         SvmClassifierTfIdf.getInstance().predict(MySqlConnector.getInstance());
+//        WekaDataClassifier.getInstance().predict(MySqlConnector.getInstance());
+//        CrossValidationClassifier.getInstance().predict(MySqlConnector.getInstance());
+//        WekaAttributeSelector.selectAttributes();
+//        KNearestNeighbourClassifier.getInstance().predict(MySqlConnector.getInstance());
 
 
     }

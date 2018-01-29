@@ -5,6 +5,7 @@ import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
 import com.ucsc.mcs.impl.tfidf.connector.WeightedDocument;
 import com.uttesh.exude.ExudeData;
 import com.uttesh.exude.exception.InvalidDataException;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,9 +18,9 @@ import java.util.*;
  */
 public class TfIdfNewsClassifier {
 
-    private SqlConnector sqlConnector = null;
+    final static Logger logger = Logger.getLogger(TfIdfNewsClassifier.class);
 
-    private List<TfIdfNewsData> tfIdfNewsDataArrayList = new ArrayList<>();
+    private SqlConnector sqlConnector = null;
 
     public TfIdfNewsClassifier(SqlConnector sqlConnector){
         this.sqlConnector = sqlConnector;
@@ -27,28 +28,39 @@ public class TfIdfNewsClassifier {
 
     public void classifyNews() {
 //        this.loadNews();
-//        this.countNewsWords();
 //        this.dumpNews();
         this.calculateTermWeights();
 //        this.calculateTfIdfValues();
     }
 
     private void calculateTermWeights(){
+
+        int count = 0;
         for(NewsData newsData : TextClassificationStore.getInstance().loadNewsFromFile()){
             try {
 
                 List<String> document = TextUtils.parseSentences(ExudeData
-                        .getInstance().filterStoppingsKeepDuplicates(newsData.getNewsHeading()), true);
+                        .getInstance().filterStoppingsKeepDuplicates(newsData.getNewsHeading()),
+                        true);
 //                System.out.println("Original : " + document.toString());
 //                System.out.println("Updated : " + TextUtils.removeDuplicates(document));
-                TextClassificationStore.getWeightedDocumentList().add(new WeightedDocument(document, newsData.getWeight()));
+                TextClassificationStore.getWeightedDocumentList().add(new WeightedDocument(document, (newsData
+                        .getWeight() * newsData.getTrend()), newsData.getNewsId()));
+
+                count ++;
+                logger.info("Weighted Doc : " + count + " " + newsData.getNewsId() + " " + document.toString());
+                if (count > 10000) {
+                    break;
+                }
+
 //                tfIdfNewsDataArrayList.add(new TfIdfNewsData(newsData, document));
             } catch (InvalidDataException e) {
-                System.out.println("Error data News : " + newsData.getNewsHeading());
+                logger.error("Error data News : " + newsData.getNewsId());
             }
         }
 
-        System.out.println("+++++++++++ News Docs Size " + TextClassificationStore.getWeightedDocumentList().size());
+        logger.info("+++++++++++ Weighted Docs Size : after news :  " + TextClassificationStore
+                .getWeightedDocumentList().size());
     }
 
 //    private void calculateTfIdfValues(){
@@ -81,8 +93,10 @@ public class TfIdfNewsClassifier {
                     String spotDate = rs.getString(3);
                     int trend = rs.getInt(4);
                     int weight = rs.getInt(5);
-                    TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
+                    countNewsWords(exchange, symbol, spotDate, trend, weight);
+//                    TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
                     count++;
+                    logger.info("HotSpot News Entries : " + count);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -90,32 +104,37 @@ public class TfIdfNewsClassifier {
             }
         }
 
-        System.out.println("News List count " + TextClassificationStore.getInstance().getNewsList().size());
+        logger.info("News List count " + TextClassificationStore.getInstance().getNewsList().size());
     }
 
-    private void countNewsWords() {
+    private void countNewsWords(String exchange, String symbol, String date, int trend, int weight) {
         Connection dbConnection = sqlConnector.connect();
 
-        for (NewsData newsData : TextClassificationStore.getInstance().getNewsList()) {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
 //                String createTableSQL = "select heading, body from msc.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
-                String createTableSQL = "select heading, body from msc.news where NEWS_DATE = ? and exchange = ? and symbol = ?";
+                String createTableSQL = "select heading, body, news_id from msc.news where NEWS_DATE = ? and exchange" +
+                        " = ? and symbol = ?";
                 try {
                     statement = dbConnection.prepareStatement(createTableSQL);
-                    statement.setString(1, newsData.getNewsDate());
-                    statement.setString(2, newsData.getExchange());
-                    statement.setString(3, newsData.getSymbol());
+                    statement.setString(1, date);
+                    statement.setString(2, exchange);
+                    statement.setString(3, symbol);
                     ResultSet rs = statement.executeQuery();
 
                     while (rs.next()) {
                         String heading = rs.getString(1).toLowerCase();
                         String body = rs.getString(2).toLowerCase();
+                        int newsId = rs.getInt(3);
+                        NewsData newsData = new NewsData(""+newsId, exchange, symbol, date, trend, weight);
                         newsData.setDataModelInput(String.join(" ", TextUtils.parseSentences(ExudeData.getInstance()
                                 .filterStoppingsKeepDuplicates(heading))));
                         newsData.setNewsHeading(heading);
                         newsData.setNewsBody(body);
+                        TextClassificationStore.getInstance().getNewsList().add(newsData);
+                        logger.info("News loaded: " + newsId + " : " + exchange + " : " + symbol + " : " + weight + "" +
+                                " :" + trend);
                         updateTextClassifier(newsData);
                     }
                 } catch (Exception e) {
@@ -123,7 +142,6 @@ public class TfIdfNewsClassifier {
                 } finally {
                 }
             }
-        }
     }
 
     private void updateTextClassifier(NewsData newsData) {

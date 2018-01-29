@@ -46,7 +46,9 @@ public class AnnouncementClassifier {
                     String spotDate = rs.getString(3);
                     int trend = rs.getInt(4);
                     int weight = rs.getInt(5);
-                    TextClassificationStore.getInstance().getAnnouncementsList().add(new AnnouncementData(exchange, symbol, spotDate, trend, weight));
+                    TextClassificationStore.getInstance().getAnnouncementsList().add(new AnnouncementData("0",
+                            exchange,
+                            symbol, spotDate, trend, weight));
                     count ++;
                 }
             } catch (SQLException e) {

@@ -36,7 +36,7 @@ public class TFIDFCalculator {
      * @param term String represents a term
      * @return the inverse term frequency of term in documents
      */
-    private double idf(List<List<String>> docs, String term) {
+    public double idf(List<List<String>> docs, String term) {
         double n = 0;
         for (List<String> doc : docs) {
             for (String word : doc) {

@@ -10,6 +10,7 @@ public class NewsData implements Serializable, Cloneable {
 
     private int trend;
     private int weight;
+    private String newsId;
     private String exchange;
     private String symbol;
     private String newsDate;
@@ -17,7 +18,8 @@ public class NewsData implements Serializable, Cloneable {
     private String newsBody;
     private String dataModelInput;
 
-    public NewsData(String exchange, String symbol, String newsDate, int trend, int weight) {
+    public NewsData(String newsId, String exchange, String symbol, String newsDate, int trend, int weight) {
+        this.newsId = newsId;
         this.exchange = exchange;
         this.symbol = symbol;
         this.newsDate = newsDate;
@@ -67,6 +69,10 @@ public class NewsData implements Serializable, Cloneable {
 
     public void setDataModelInput(String dataModelInput) {
         this.dataModelInput = dataModelInput;
+    }
+
+    public String getNewsId() {
+        return newsId;
     }
 
     @Override

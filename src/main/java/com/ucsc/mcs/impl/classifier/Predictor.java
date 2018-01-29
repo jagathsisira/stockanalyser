@@ -65,7 +65,7 @@ public class Predictor {
                     String heading = rs.getString(3);
                     String body = rs.getString(4);
                     System.out.println("Ann " + exchange + " : " + symbol);
-                    AnnouncementData annData = new AnnouncementData(exchange, symbol, null, 0, 0);
+                    AnnouncementData annData = new AnnouncementData("0", exchange, symbol, null, 0, 0);
                     annData.setAnnHeading(heading + " " + body);
                     announcementsSamples.add(annData);
                     count++;
@@ -94,7 +94,7 @@ public class Predictor {
                     String heading = rs.getString(3);
                     String body = rs.getString(4);
                     System.out.println("News " + exchange + " : " + symbol);
-                    NewsData newsData = new NewsData(exchange, symbol, null, 0, 0);
+                    NewsData newsData = new NewsData("0" ,exchange, symbol, null, 0, 0);
                     newsData.setNewsHeading(heading + " " + body);
                     newsSamples.add(newsData);
                     count++;

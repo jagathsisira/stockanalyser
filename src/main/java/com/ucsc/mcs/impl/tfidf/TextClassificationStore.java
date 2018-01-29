@@ -5,6 +5,7 @@ import com.ucsc.mcs.impl.data.NewsData;
 import com.ucsc.mcs.impl.tfidf.connector.SqlConnector;
 import com.ucsc.mcs.impl.tfidf.connector.WeightedDocument;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.sql.Connection;
@@ -16,6 +17,7 @@ import java.util.*;
  * Created by JagathA on 11/24/2017.
  */
 public class TextClassificationStore {
+    final static Logger logger = Logger.getLogger(TextClassificationStore.class);
 
     private static TextClassificationStore textClassificationStore = new TextClassificationStore();
 
@@ -284,7 +286,7 @@ public class TextClassificationStore {
         }catch(Exception ioe){
             ioe.printStackTrace();
         }
-        System.out.println("News Data List Size : " + newsData.size());
+        logger.info("News Data List Size : " + newsData.size());
         return newsData;
     }
 
@@ -293,27 +295,52 @@ public class TextClassificationStore {
     }
 
     public static void generateWordMaster(){
+        List<String> localWordMaster = new ArrayList<>();
+        loadWeightedDocsFromFile();
         //populate list
         for(WeightedDocument document: weightedDocumentList){
             for(String word : document.getDocument()){
-                if(!wordMaster.contains(word)){
-                    wordMaster.add(word);
+                if(!localWordMaster.contains(word)){
+                    localWordMaster.add(word);
                 }
             }
         }
 
-        System.out.println("Word Master Completed with size : " + wordMaster.size());
-        System.out.println("Word Master:  " + wordMaster.toString());
+        logger.info("Local Word Master Completed with size : " + localWordMaster.size());
+        logger.info("Local Word Master:  " + localWordMaster.toString());
 
-        Collections.sort(wordMaster, new Comparator<String>() {
+        Collections.sort(localWordMaster, new Comparator<String>() {
             @Override
             public int compare(String s1, String s2) {
                 return s1.compareToIgnoreCase(s2);
             }
         });
 
-        System.out.println("Ordered Word Master Completed with size : " + wordMaster.size());
-        System.out.println("Ordered Word Master:  " + wordMaster.toString());
+        logger.info("Ordered Local Word Master Completed with size : " + localWordMaster.size());
+        logger.info("Ordered Local Word Master:  " + localWordMaster.toString());
+
+        List<List<String>> tfIfdDocList = new ArrayList<>();
+        for(WeightedDocument weightedDocument : weightedDocumentList){
+            tfIfdDocList.add(weightedDocument.getDocument());
+        }
+
+        double idfTotal = 0;
+        double idfAvg = 0;
+        int idfCount = 0;
+        for(String word : localWordMaster){
+            double tfIdf = TFIDFCalculator.getInstance().idf(tfIfdDocList, word);
+            idfCount ++;
+            idfTotal = idfTotal + tfIdf;
+            idfAvg = (idfTotal/idfCount);
+            logger.info(">>> " + tfIdf + " Count: " + idfCount + " Avg: " + idfAvg + " : " + word);
+
+            if(tfIdf < 10){
+                wordMaster.add(word);
+            }
+        }
+
+        logger.info("TFIDF Word Master Completed with size : " + wordMaster.size());
+        logger.info("TFIDF Word Master:  " + wordMaster.toString());
 
         dumpWordMaster();
     }
@@ -348,6 +375,39 @@ public class TextClassificationStore {
 
     public static List<String> getWordMaster() {
         return wordMaster;
+    }
+
+    public static void setWordMaster(List<String> wordMaster) {
+        TextClassificationStore.wordMaster = wordMaster;
+    }
+
+    public static void dumpWeightedDocs(){
+        try{
+            FileOutputStream fos= new FileOutputStream("weightedDocs.dat");
+            ObjectOutputStream oos= new ObjectOutputStream(fos);
+            oos.writeObject(weightedDocumentList);
+            oos.close();
+            fos.close();
+        }catch(IOException ioe){
+            ioe.printStackTrace();
+        }
+    }
+
+    public static List<WeightedDocument> loadWeightedDocsFromFile(){
+        List<WeightedDocument> weightedDocs = new ArrayList<>();
+        try
+        {
+            FileInputStream fis = new FileInputStream("weightedDocs.dat");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            weightedDocumentList = (ArrayList) ois.readObject();
+            ois.close();
+            fis.close();
+        }catch(Exception ioe){
+            ioe.printStackTrace();
+        }
+
+        logger.info("Weighted Doc list loaded : " + weightedDocumentList.size());
+        return weightedDocs;
     }
 }
 

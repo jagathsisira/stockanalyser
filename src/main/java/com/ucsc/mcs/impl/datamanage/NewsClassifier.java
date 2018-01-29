@@ -47,7 +47,8 @@ public class NewsClassifier {
                     String spotDate = rs.getString(3);
                     int trend = rs.getInt(4);
                     int weight = rs.getInt(5);
-                    TextClassificationStore.getInstance().getNewsList().add(new NewsData(exchange, symbol, spotDate, trend, weight));
+                    TextClassificationStore.getInstance().getNewsList().add(new NewsData("0", exchange, symbol,
+                            spotDate, trend, weight));
                     count++;
 
 //                    if (count == 10) {
