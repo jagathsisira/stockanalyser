@@ -333,7 +333,7 @@ public class CrossValidationClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "SELECT AVG(count) FROM msc.classifier_tf_idf";
+            String createTableSQL = "SELECT AVG(count) FROM msc2.classifier_tf_idf";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();

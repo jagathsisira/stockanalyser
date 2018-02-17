@@ -26,17 +26,22 @@ public class TfIdfNewsClassifier {
         this.sqlConnector = sqlConnector;
     }
 
-    public void classifyNews() {
+    public void classifyNews(int predictionStart, int predictionFinish) {
 //        this.loadNews();
 //        this.dumpNews();
-        this.calculateTermWeights();
+        this.calculateTermWeights(predictionStart, predictionFinish);
 //        this.calculateTfIdfValues();
     }
 
-    private void calculateTermWeights(){
-
+    private void calculateTermWeights(int predictionStart, int predictionFinish){
         int count = 0;
+        int processedCount = 0;
+
         for(NewsData newsData : TextClassificationStore.getInstance().loadNewsFromFile()){
+            count ++;
+            if(count > predictionStart && count < predictionFinish){
+                continue;
+            }
             try {
 
                 List<String> document = TextUtils.parseSentences(ExudeData
@@ -45,13 +50,10 @@ public class TfIdfNewsClassifier {
 //                System.out.println("Original : " + document.toString());
 //                System.out.println("Updated : " + TextUtils.removeDuplicates(document));
                 TextClassificationStore.getWeightedDocumentList().add(new WeightedDocument(document, (newsData
-                        .getWeight() * newsData.getTrend()), newsData.getNewsId()));
+                        .getWeight()), newsData.getNewsId()));
 
-                count ++;
-                logger.info("Weighted Doc : " + count + " " + newsData.getNewsId() + " " + document.toString());
-                if (count > 10000) {
-                    break;
-                }
+                processedCount ++;
+//                logger.info("Weighted Doc : " + count + " " + newsData.getNewsId() + " " + document.toString());
 
 //                tfIdfNewsDataArrayList.add(new TfIdfNewsData(newsData, document));
             } catch (InvalidDataException e) {
@@ -59,7 +61,8 @@ public class TfIdfNewsClassifier {
             }
         }
 
-        logger.info("+++++++++++ Weighted Docs Size : after news :  " + TextClassificationStore
+        logger.info("+++++++++++ Weighted Docs Size : after news :  " + predictionStart + " : " + predictionFinish +
+                " Processed Count : " + processedCount + " Store Size : " +  TextClassificationStore
                 .getWeightedDocumentList().size());
     }
 
@@ -82,7 +85,7 @@ public class TfIdfNewsClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc.hotspots where is_news_avail=1";
+            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc2.hotspots where is_news_avail=1";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();
@@ -113,7 +116,7 @@ public class TfIdfNewsClassifier {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
-//                String createTableSQL = "select heading, body from msc.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
+//                String createTableSQL = "select heading, body from msc2.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
                 String createTableSQL = "select heading, body, news_id from msc.news where NEWS_DATE = ? and exchange" +
                         " = ? and symbol = ?";
                 try {

@@ -35,7 +35,7 @@ public class AnnouncementClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc.hotspots where is_ann_avail=1";
+            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc2.hotspots where is_ann_avail=1";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();

@@ -144,7 +144,7 @@ public class NaiveBayesClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select word, avg_weight from msc.classifier where count > ?";
+            String createTableSQL = "select word, avg_weight from msc2.classifier where count > ?";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 statement.setInt(1,(int)avgCount);
@@ -173,7 +173,7 @@ public class NaiveBayesClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "SELECT AVG(count) FROM msc.classifier";
+            String createTableSQL = "SELECT AVG(count) FROM msc2.classifier";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();

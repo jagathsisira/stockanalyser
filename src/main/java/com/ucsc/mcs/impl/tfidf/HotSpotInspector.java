@@ -40,7 +40,7 @@ public class HotSpotInspector {
             } finally {
             }
         }
-        System.out.println("++++ " + hotSpots);
+        System.out.println("++++ " + hotSpots.size());
         return hotSpots;
     }
 
@@ -51,7 +51,8 @@ public class HotSpotInspector {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select str_to_date(HIST_DATE, '%Y-%m-%d 00:00:00') as date, close from history where exchange=? and symbol=? order by date asc";
+            String createTableSQL = "select str_to_date(HIST_DATE, '%Y-%m-%d 00:00:00') as date, close from " +
+                    "msc.history where exchange=? and symbol=? order by date asc";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 statement.setString(1, exchange);
@@ -76,21 +77,21 @@ public class HotSpotInspector {
     }
 
     private void findHotSpot(ArrayList<HistoryObject> historyList, String exchange, String symbol) {
-        int position = 4; //starting from 4th position to compare 4 pair of dates
+        int position = 0; //starting from 0th position to compare 4 pair of dates
         ArrayList<String> annDates = getAnnDates(exchange, symbol);
         ArrayList<String> newsDates = getNewsDates(exchange, symbol);
 
-        while (position <= (historyList.size() - 1)) {
+        while (position <= (historyList.size() - 5)) {
             HistoryObject currentObject = historyList.get(position);
-            HistoryObject previousObject = historyList.get(position - 1);
+            HistoryObject nextObject = historyList.get(position + 1);
 
-            int currentTrend = getTrend(currentObject, previousObject);
-            HistoricalTrend previousTrend = getPreviousTrend(position, historyList);
+            int currentTrend = getTrend(nextObject, currentObject);
+            HistoricalTrend nextTrend = getNextTrend(position, historyList);
 
 //            System.out.println("History trend  : " + previousTrend.getTrend() + " : " + previousTrend.getWeight());
 
-            if ((currentTrend != 0 && previousTrend.getTrend() != 0) &&
-                    (currentTrend > previousTrend.getTrend() || currentTrend < previousTrend.getTrend())) {
+            if ((currentTrend != 0 && nextTrend.getTrend() != 0) &&
+                    (currentTrend > nextTrend.getTrend() || currentTrend < nextTrend.getTrend())) {
                 ArrayList<HotSpot> exchangeHotSpots = hotSpots.get(currentObject.getExchange());
 
                 if(exchangeHotSpots == null){
@@ -98,11 +99,11 @@ public class HotSpotInspector {
                     hotSpots.put(currentObject.getExchange(), exchangeHotSpots);
                 }
 
-                boolean isAnnAvailable = annDates.contains(previousObject.getDate());
-                boolean isNewsAvailable = newsDates.contains(previousObject.getDate());
+                boolean isAnnAvailable = annDates.contains(nextObject.getDate());
+                boolean isNewsAvailable = newsDates.contains(nextObject.getDate());
 
-                HotSpot hotSpot = new HotSpot(currentObject.getExchange(), currentObject.getSymbol(), previousObject.getDate()
-                        , currentTrend, previousTrend.getTrend(), previousTrend.getWeight()
+                HotSpot hotSpot = new HotSpot(currentObject.getExchange(), currentObject.getSymbol(), nextObject.getDate()
+                        , currentTrend, nextTrend.getTrend(), nextTrend.getWeight()
                         , isAnnAvailable, isNewsAvailable);
 
                 exchangeHotSpots.add(hotSpot);
@@ -111,17 +112,19 @@ public class HotSpotInspector {
                     addHotSpotData(hotSpot);
                 }
 
-                System.out.println("**** Hotspot Added  : " + currentTrend + " : " + previousTrend.getTrend() + " : "
-                        + previousTrend.getWeight() + " : " + previousObject.getDate());
-            }
-            position++;
-        }
+                System.out.println("**** Hotspot Added  : " + currentTrend + " : " + nextTrend.getTrend() + " : "
+                        + nextTrend.getWeight() + " : " + nextObject.getDate());
+                position = position + nextTrend.getWeight();
 
+            } else {
+                position++;
+            }
+        }
     }
 
-    private int getTrend(HistoryObject currentObj, HistoryObject prevObj) {
+    private int getTrend(HistoryObject nextObj, HistoryObject currentObj) {
         int currentTrend = 0;
-        double priceChange = (currentObj.getClose() - prevObj.getClose());
+        double priceChange = (nextObj.getClose() - currentObj.getClose());
 
         if (priceChange > 0) {
             currentTrend = 1;
@@ -174,6 +177,48 @@ public class HotSpotInspector {
         return new HistoricalTrend(prevTrend, weight);
     }
 
+    private HistoricalTrend getNextTrend(int position, ArrayList<HistoryObject> historyObjects) {
+        int nextTrend = 0;
+        int weight = 0;
+
+        double priceChangeDay1 = (historyObjects.get(position + 2).getClose()) - (historyObjects.get(position + 1)
+                .getClose());
+        double priceChangeDay2 = (historyObjects.get(position + 3).getClose()) - (historyObjects.get(position + 2)
+                .getClose());
+        double priceChangeDay3 = (historyObjects.get(position + 4).getClose()) - (historyObjects.get(position + 3)
+                .getClose());
+
+        if (priceChangeDay1 > 0) {
+            nextTrend = 1;
+            weight = 1;
+
+            if (priceChangeDay2 > 0) {
+                nextTrend = 1;
+                weight = 2;
+
+                if (priceChangeDay3 > 0) {
+                    nextTrend = 1;
+                    weight = 3;
+                }
+            }
+        } else if (priceChangeDay1 < 0) {
+            nextTrend = -1;
+            weight = 1;
+
+            if (priceChangeDay2 < 0) {
+                nextTrend = -1;
+                weight = 2;
+
+                if (priceChangeDay3 < 0) {
+                    nextTrend = -1;
+                    weight = 3;
+                }
+            }
+        }
+
+        return new HistoricalTrend(nextTrend, weight);
+    }
+
     private ArrayList<String> getAnnDates(String exchange, String symbol){
         ArrayList<String> annsDates = new ArrayList<String>();
         Connection dbConnection = sqlConnector.connect();
@@ -181,7 +226,7 @@ public class HotSpotInspector {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-//            String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%M-%Y')) from msc.announcements where  exchange = ? and symbol = ?;";
+//            String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%M-%Y')) from msc2.announcements where  exchange = ? and symbol = ?;";
             String createTableSQL = "select distinct(str_to_date(ANN_DATE, '%d-%b-%y')) from msc.announcements where  exchange = ? and symbol = ?;";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
@@ -242,7 +287,7 @@ public class HotSpotInspector {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "insert into msc.hotspots values (?,?,?,?,?,?,?,?)";
+            String createTableSQL = "insert into msc2.hotspots values (?,?,?,?,?,?,?,?)";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 statement.setString(1, hotSpot.getExchange());

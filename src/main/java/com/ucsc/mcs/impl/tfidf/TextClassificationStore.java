@@ -125,7 +125,7 @@ public class TextClassificationStore {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
-                String createTableSQL = "insert into msc.classifier_tf_idf values (?,?,?)";
+                String createTableSQL = "insert into msc2.classifier_tf_idf values (?,?,?)";
                 try {
                     statement = dbConnection.prepareStatement(createTableSQL);
                     statement.setString(1, key);
@@ -183,7 +183,7 @@ public class TextClassificationStore {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
-                String createTableSQL = "insert into msc.classifier values (?,?,?)";
+                String createTableSQL = "insert into msc2.classifier values (?,?,?)";
                 try {
                     statement = dbConnection.prepareStatement(createTableSQL);
                     statement.setString(1, key);
@@ -328,19 +328,19 @@ public class TextClassificationStore {
         double idfAvg = 0;
         int idfCount = 0;
         for(String word : localWordMaster){
-            double tfIdf = TFIDFCalculator.getInstance().idf(tfIfdDocList, word);
-            idfCount ++;
-            idfTotal = idfTotal + tfIdf;
-            idfAvg = (idfTotal/idfCount);
-            logger.info(">>> " + tfIdf + " Count: " + idfCount + " Avg: " + idfAvg + " : " + word);
-
-            if(tfIdf < 10){
+//            double tfIdf = TFIDFCalculator.getInstance().idf(tfIfdDocList, word);
+//            idfCount ++;
+//            idfTotal = idfTotal + tfIdf;
+//            idfAvg = (idfTotal/idfCount);
+//            logger.info(">>> " + tfIdf + " Count: " + idfCount + " Avg: " + idfAvg + " : " + word);
+//
+////            if(tfIdf < 10){
                 wordMaster.add(word);
-            }
+////            }
         }
 
-        logger.info("TFIDF Word Master Completed with size : " + wordMaster.size());
-        logger.info("TFIDF Word Master:  " + wordMaster.toString());
+//        logger.info("TFIDF Word Master Completed with size : " + wordMaster.size());
+//        logger.info("TFIDF Word Master:  " + wordMaster.toString());
 
         dumpWordMaster();
     }
@@ -399,15 +399,28 @@ public class TextClassificationStore {
         {
             FileInputStream fis = new FileInputStream("weightedDocs.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            weightedDocumentList = (ArrayList) ois.readObject();
+            weightedDocs = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
         }catch(Exception ioe){
             ioe.printStackTrace();
         }
 
+        weightedDocumentList = weightedDocs;
+
         logger.info("Weighted Doc list loaded : " + weightedDocumentList.size());
         return weightedDocs;
+    }
+
+    public void cleanStores(){
+        logger.info("Clearing stores : weighted docs " + weightedDocumentList.size() + " wordmaster : " + wordMaster
+                .size());
+        weightedDocumentList.clear();
+        wordMaster.clear();
+        newsList.clear();
+        announcementsList.clear();
+        logger.info("Cleared stores : weighted docs " + weightedDocumentList.size() + " wordmaster : " + wordMaster
+                .size());
     }
 }
 

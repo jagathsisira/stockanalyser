@@ -36,7 +36,7 @@ public class NewsClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc.hotspots where is_news_avail=1";
+            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc2.hotspots where is_news_avail=1";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();
@@ -71,8 +71,8 @@ public class NewsClassifier {
             if (dbConnection != null) {
                 PreparedStatement statement = null;
 
-//                String createTableSQL = "select heading, body from msc.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
-                String createTableSQL = "select heading, body from msc.news where NEWS_DATE = ? and exchange = ? and symbol = ?";
+//                String createTableSQL = "select heading, body from msc2.news where str_to_date(NEWS_DATE, '%m/%d/%Y') = ? and exchange = ? and symbol = ?";
+                String createTableSQL = "select heading, body from msc2.news where NEWS_DATE = ? and exchange = ? and symbol = ?";
                 try {
                     statement = dbConnection.prepareStatement(createTableSQL);
                     statement.setString(1, newsData.getNewsDate());

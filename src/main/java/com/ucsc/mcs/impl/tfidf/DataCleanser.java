@@ -83,7 +83,7 @@ public class DataCleanser {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "insert into msc.announcements (ann_id, exchange, ann_date, symbol, heading, body, language_id) values (?,?,?,?,?,?,?)";
+            String createTableSQL = "insert into msc2.announcements (ann_id, exchange, ann_date, symbol, heading, body, language_id) values (?,?,?,?,?,?,?)";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 statement.setInt(1, Integer.parseInt(line[0]));
@@ -166,7 +166,7 @@ public class DataCleanser {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "insert into msc.news (news_id, exchange, symbol, news_date, heading, body) " +
+            String createTableSQL = "insert into msc2.news (news_id, exchange, symbol, news_date, heading, body) " +
                     "values (?,?,?,?,?,?)";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
@@ -235,7 +235,7 @@ public class DataCleanser {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "insert into msc.history (exchange, symbol, date, open, close) values (?,?,?,?,?)";
+            String createTableSQL = "insert into msc2.history (exchange, symbol, date, open, close) values (?,?,?,?,?)";
             String[] params = line.split(",");
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);

@@ -28,8 +28,8 @@ public class TfIdfAnnouncementClassifier {
     }
 
     public void classifyAnnouncements() {
-        this.loadAnnouncements();
-        this.dumpAnnouncements();
+//        this.loadAnnouncements();
+//        this.dumpAnnouncements();
         this.calculateTermWeights();
 //        this.calculateTfIdfValues();
     }
@@ -74,7 +74,7 @@ public class TfIdfAnnouncementClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc.hotspots " +
+            String createTableSQL = "select exchange, symbol, spot_date, current_trend, weight from msc2.hotspots " +
                     "where is_ann_avail=1";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
@@ -147,7 +147,7 @@ public class TfIdfAnnouncementClassifier {
 //            if (dbConnection != null) {
 //                PreparedStatement statement = null;
 //
-//                String createTableSQL = "select heading, body from msc.announcements where str_to_date(ANN_DATE, '%d-%b-%y') = ? and exchange = ? and symbol = ?";
+//                String createTableSQL = "select heading, body from msc2.announcements where str_to_date(ANN_DATE, '%d-%b-%y') = ? and exchange = ? and symbol = ?";
 //                try {
 //                    statement = dbConnection.prepareStatement(createTableSQL);
 //                    statement.setString(1, announcementData.getAnnDate());

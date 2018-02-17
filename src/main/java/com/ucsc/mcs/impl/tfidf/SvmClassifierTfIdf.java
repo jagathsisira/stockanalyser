@@ -8,6 +8,8 @@ import com.uttesh.exude.ExudeData;
 import com.uttesh.exude.exception.InvalidDataException;
 import libsvm.LibSVM;
 import net.sf.javaml.classification.KNearestNeighbors;
+import net.sf.javaml.classification.evaluation.CrossValidation;
+import net.sf.javaml.classification.evaluation.PerformanceMeasure;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.data.FileHandler;
@@ -43,14 +45,15 @@ public class SvmClassifierTfIdf {
         return svmClassifierTfIdf;
     }
 
-    public void predict(SqlConnector connector) {
+    public void predict(SqlConnector connector, int predictionStart, int predictionFinish) {
         ArrayList<Boolean> results = new ArrayList<>();
 
-        this.trainClassifier(connector);
+        this.trainClassifier(connector, predictionStart, predictionFinish);
         int correctCount = 0;
         int absCorrectCount = 0;
         int signCorrectCount = 0;
         int totalCount = 0;
+        int predictCount = 0;
 
         try {
         /* Load a data set */
@@ -62,111 +65,127 @@ public class SvmClassifierTfIdf {
             long startTime = System.currentTimeMillis();
             logger.info("Start building classifier " + startTime);
 
-            net.sf.javaml.classification.Classifier svm = new KNearestNeighbors(5);
+            net.sf.javaml.classification.Classifier svm = new LibSVM();
             svm.buildClassifier(data);
 //            dumpSvmClassifier(svm);
 //            net.sf.javaml.classification.Classifier svm =loadSvmClassifier();
+
+            CrossValidation crossValidation = new CrossValidation(svm);
+
             long endTime = System.currentTimeMillis();
             logger.info("Finished building classifier " + endTime + " in " + ((endTime - startTime)/1000) + " " +
                     "seconds");
+            Map<Object, PerformanceMeasure> p = crossValidation.crossValidation(data, 5, new Random(1));
+//            Map<Object, PerformanceMeasure> q = crossValidation.crossValidation(data, 5, new Random(1));
+//            Map<Object, PerformanceMeasure> r = crossValidation.crossValidation(data, 5, new Random(25));
+
+
+            for(Object o:p.keySet()) {
+                System.out.println(o + ": " + p.get(o).getAccuracy() + " " + p.get(o).getRecall() + " " + p.get(o)
+                        .getBCR() + " " + p.get(o).getFMeasure());
+            }
+
+            Map<Object, PerformanceMeasure> q = crossValidation.crossValidation(data, 5, new Random(1));
+            for(Object o:q.keySet()) {
+                System.out.println(o + ": " + q.get(o).getAccuracy() + " " + q.get(o).getRecall() + " " + q.get(o)
+                        .getBCR() + " " + q.get(o).getFMeasure());
+            }
+
+            Map<Object, PerformanceMeasure> r = crossValidation.crossValidation(data, 5, new Random(25));
+            for(Object o:r.keySet()) {
+                System.out.println(o + ": " + r.get(o).getAccuracy() + " " + r.get(o).getRecall() + " " + r.get(o)
+                        .getBCR() + " " + r.get(o).getFMeasure());
+            }
+
+            if(1==1){
+                return;
+            }
 
         /*
          * Load a data set, this can be a different one, but we will use the
          * same one.
          */
 
-            int count = 0;
-            int predictCount = 0;
-            int duplicatePredictCount = 0;
-            int offSet = 0;
-
-            List<String> predictedList = new ArrayList<>();
             for (NewsData newsData : TextClassificationStore.getInstance().loadNewsFromFile()) {
-                offSet ++;
-//                if(offSet > 2000){
-//                    break;
-//                }
-                if(offSet <= 10000){
+                totalCount++;
+
+                if(totalCount <= predictionStart || totalCount > predictionFinish){
                     continue;
                 }
-                int wordMasterMatchingCount = 0;
-                try {
-                    //Classify a single sentence
-                    String sentence = newsData.getNewsHeading() + " " + newsData.getNewsBody();
-                    int originalWeight = newsData.getWeight() * newsData.getTrend();
 
-                    StringBuilder stringBuilder = new StringBuilder();
+                if(totalCount > predictionFinish){
+                    break;
+                }
+                    int wordMasterMatchingCount = 0;
+                    try {
+                        //Classify a single sentence
+                        String sentence = newsData.getNewsHeading();
+                        int originalWeight = newsData.getTrend();
 
-                    List<String> document = TextUtils.parseSentences(ExudeData
-                            .getInstance().filterStoppingsKeepDuplicates(sentence), true);
-                    List<String> wordMaster = TextClassificationStore.getInstance().loadWordMasterFile();
-                    for(String masterWord: wordMaster) {
-                        if(document.contains(masterWord)) {
-                            stringBuilder.append("1");
-                            stringBuilder.append(",");
-                            wordMasterMatchingCount ++;
-                        } else {
-                            stringBuilder.append("0");
-                            stringBuilder.append(",");
+                        StringBuilder stringBuilder = new StringBuilder();
+
+                        List<String> document = TextUtils.parseSentences(ExudeData
+                                .getInstance().filterStoppingsKeepDuplicates(sentence), true);
+                        List<String> wordMaster = TextClassificationStore.getInstance().loadWordMasterFile();
+                        for (String masterWord : wordMaster) {
+                            if (document.contains(masterWord)) {
+                                stringBuilder.append("1");
+                                stringBuilder.append(",");
+                                wordMasterMatchingCount++;
+                            } else {
+                                stringBuilder.append("-1");
+                                stringBuilder.append(",");
+                            }
                         }
-                    }
-                    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-                    if(predictedList.contains(stringBuilder.toString())){
-                        duplicatePredictCount ++;
-                        logger.info("Duplicate Prediction : " + duplicatePredictCount + " : " + newsData.getNewsId()
-                                + document.toString());
-                        continue;
-                    } else {
-                        predictedList.add(stringBuilder.toString());
-                    }
-                    predictCount ++;
+                        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+//                    if(predictedList.contains(stringBuilder.toString())){
+//                        duplicatePredictCount ++;
+//                        logger.info("Duplicate Prediction : " + duplicatePredictCount + " : " + newsData.getNewsId()
+//                                + document.toString());
+//                        continue;
+//                    } else {
+//                        predictedList.add(stringBuilder.toString());
+//                    }
 
-                    this.writeToFile("./src/main/resources/tmpNewsTfIds.data", stringBuilder.toString());
+                        this.writeToFile("./src/main/resources/tmpNewsTfIds.data", stringBuilder.toString());
 
-                    logger.info("Predicting : " + wordMasterMatchingCount + " : " + newsData.getNewsId() + " " +
-                            document
-                            .toString());
-                    logger.info("Predicting : " + wordMasterMatchingCount + " : " + newsData.getNewsId() + " " + stringBuilder.toString());
+//                        logger.info("Predicting : " + wordMasterMatchingCount + " : " + newsData.getNewsId() + " " +
+//                                document
+//                                        .toString());
+//                        logger.info("Predicting : " + wordMasterMatchingCount + " : " + newsData.getNewsId() + " " + stringBuilder.toString());
 
-                    if(predictCount > 2000){
-                        break;
-                    }
 
 //                    System.out.println("++++ " + stringBuilder.toString());
 
-                    Dataset dataForClassification = FileHandler.loadDataset(new File("" +
-                            "./src/main/resources/tmpNewsTfIds.data"), ",");
-                    int correct = 0, wrong = 0;
+                        Dataset dataForClassification = FileHandler.loadDataset(new File("" +
+                                "./src/main/resources/tmpNewsTfIds.data"), ",");
+                        int correct = 0, wrong = 0;
 
-                    for (Instance inst : dataForClassification) {
-                        Object predictedClassValue = svm.classify(inst);
-                        if( originalWeight == ((Integer.parseInt((String) predictedClassValue)))){
-                            correctCount ++;
-                        }
-                        if( Math.abs(originalWeight) == Math.abs(((Integer.parseInt((String) predictedClassValue))))){
-                            absCorrectCount ++;
+                        for (Instance inst : dataForClassification) {
+                            Object predictedClassValue = svm.classify(inst);
+                            if (originalWeight == ((Integer.parseInt((String) predictedClassValue)))) {
+                                correctCount++;
+                            }
+                            if (Math.abs(originalWeight) == Math.abs(((Integer.parseInt((String) predictedClassValue))))) {
+                                absCorrectCount++;
+                            }
+
+                            if (Math.signum(originalWeight) == Math.signum(((Integer.parseInt((String) predictedClassValue))))) {
+                                signCorrectCount++;
+                            }
+
+//                        logger.info("Original : " + originalWeight + " Predicted : " + Integer.parseInt((String)
+//                                predictedClassValue) + " : News ID : " + newsData.getNewsId() + " Total : " +
+//                                totalCount + " Success: " + (correctCount * 100)/totalCount + " Abs Success: " +
+//                                (absCorrectCount * 100)/totalCount + " Sign Success: " +
+//                                (signCorrectCount * 100)/totalCount);
+                            predictCount ++;
                         }
 
-                        if( Math.signum(originalWeight) == Math.signum(((Integer.parseInt((String) predictedClassValue))))){
-                            signCorrectCount ++;
-                        }
-                        totalCount ++;
-                        logger.info("Original : " + originalWeight + " Predicted : " + Integer.parseInt((String)
-                                predictedClassValue) + " : News ID : " + newsData.getNewsId() + " Total : " +
-                                totalCount + " Success: " + (correctCount * 100)/totalCount + " Abs Success: " +
-                                (absCorrectCount * 100)/totalCount + " Sign Success: " +
-                                (signCorrectCount * 100)/totalCount);
+                    } catch (Exception e) {
+                        logger.info("Error in predicting news ", e);
                     }
-                    count ++;
-                } catch (Exception e) {
-                    logger.info("Error in predicting news ", e);
                 }
-//                if(count > 100){
-//                    break;
-//                }
-            }
-
-            logger.info("News Count : " + count);
 
 //            count = 0;
 //            for (AnnouncementData announcementData : TextClassificationStore.getInstance().loadAnnouncementsFromFile()) {
@@ -215,14 +234,22 @@ public class SvmClassifierTfIdf {
 //
 //                logger.info("Announcement Count : " + count);
 //            }
+            svm = null;
         } catch (IOException e) {
             logger.info("Error in predicting data ", e);
         }
-        logger.info("========> SVM Total entries used : " + totalCount + " : " + (correctCount * 100)
-                /totalCount);
+        logger.info("========> SVM Total Prediction window : " + predictCount + " Start:" + predictionStart + " " +
+                "Finish: " +
+                predictionFinish + " " +
+                "<================");
+        logger.info(" Total : " + predictCount + " Success: " + (correctCount * 100)/predictCount + " Abs Success: " +
+                (absCorrectCount * 100)/predictCount + " Sign Success: " +
+                (signCorrectCount * 100)/predictCount);
+
+
     }
 
-    private void trainClassifier(SqlConnector sqlConnector){
+    private void trainClassifier(SqlConnector sqlConnector, int predictionStart, int predictionFinish){
         StringBuilder stringBuilder = new StringBuilder();
         List<String> trainedList = new ArrayList<>();
         List<String> wordMaster = TextClassificationStore.getInstance().loadWordMasterFile();
@@ -230,7 +257,7 @@ public class SvmClassifierTfIdf {
         int count = 0;
         int duplicateCount = 0;
         for (WeightedDocument document : TextClassificationStore.getWeightedDocumentList()) {
-            logger.info(">> " + document.getDocument());
+//            logger.info(">> " + document.getDocument());
             StringBuilder stringBuilder2 = new StringBuilder();
             StringBuilder stringBuilder3 = new StringBuilder();
 //            stringBuilder.append(document.getWeight());
@@ -248,32 +275,31 @@ public class SvmClassifierTfIdf {
 //                    stringBuilder.append(",");
 //                    stringBuilder.append("0");
                     stringBuilder2.append(",");
-                    stringBuilder2.append("0");
+                    stringBuilder2.append("-1");
                     stringBuilder3.append(",");
-                    stringBuilder3.append("0");
+                    stringBuilder3.append("-1");
                 }
             }
-            if(trainedList.contains(stringBuilder3.toString())){
-                duplicateCount ++;
-                logger.info("Duplicated Training : " + duplicateCount + " : " + document.getId() + " " + document
-                        .getDocument().toString());
-                logger.info("Duplicated Training : " + duplicateCount + " : " +  document.getId() + " " +
-                        stringBuilder2.toString());
-                continue;
-            } else {
-                trainedList.add(stringBuilder3.toString());
-            }
+//            if(trainedList.contains(stringBuilder3.toString())){
+//                duplicateCount ++;
+//                logger.info("Duplicated Training : " + duplicateCount + " : " + document.getId() + " " + document
+//                        .getDocument().toString());
+//                logger.info("Duplicated Training : " + duplicateCount + " : " +  document.getId() + " " +
+//                        stringBuilder2.toString());
+//                continue;
+//            } else {
+//                trainedList.add(stringBuilder3.toString());
+//            }
+            trainedList.add(stringBuilder3.toString());
             stringBuilder.append(stringBuilder2.toString());
             stringBuilder.append("\n");
-            logger.info("Training : " + count + " : " + document.getId() + " " + document.getDocument().toString());
-            logger.info("Training : " + count + " : " + document.getId() + " " + stringBuilder2.toString());
+//            logger.info("Training : " + count + " : " + document.getId() + " " + document.getDocument().toString());
+//            logger.info("Training : " + count + " : " + document.getId() + " " + stringBuilder2.toString());
             count ++;
-            if(count > 10000){
-                break;
-            }
         }
 
-        logger.info("SVM Train Data: Completed " + TextClassificationStore.getWeightedDocumentList().size() + " " +
+        logger.info("SVM Train Data: Completed " + predictionStart + " : " + predictionFinish + " " +
+                TextClassificationStore.getWeightedDocumentList().size() + " " +
                 "Actual : " + count);
 
         this.writeToFile("./src/main/resources/svmTfIdf.data", stringBuilder.toString());
@@ -309,7 +335,7 @@ public class SvmClassifierTfIdf {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "SELECT AVG(count) FROM msc.classifier_tf_idf";
+            String createTableSQL = "SELECT AVG(count) FROM msc2.classifier_tf_idf";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();

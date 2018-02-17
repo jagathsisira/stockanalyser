@@ -183,7 +183,7 @@ public class SvmClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select word, avg_weight, count from msc.classifier";// where count > ?
+            String createTableSQL = "select word, avg_weight, count from msc2.classifier";// where count > ?
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
 //                statement.setInt(1, new Double(avgCount).intValue());
@@ -266,7 +266,7 @@ public class SvmClassifier {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "SELECT AVG(count) FROM msc.classifier";
+            String createTableSQL = "SELECT AVG(count) FROM msc2.classifier";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();

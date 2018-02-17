@@ -54,7 +54,7 @@ public class Predictor {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select exchange, symbol, heading, body from msc.announcements order by ann_date desc limit 100";
+            String createTableSQL = "select exchange, symbol, heading, body from msc2.announcements order by ann_date desc limit 100";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();
@@ -83,7 +83,7 @@ public class Predictor {
         if (dbConnection != null) {
             PreparedStatement statement = null;
 
-            String createTableSQL = "select exchange, symbol, heading, body from msc.news order by news_date desc limit 100";
+            String createTableSQL = "select exchange, symbol, heading, body from msc2.news order by news_date desc limit 100";
             try {
                 statement = dbConnection.prepareStatement(createTableSQL);
                 ResultSet rs = statement.executeQuery();
